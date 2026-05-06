@@ -56,6 +56,31 @@ module Api
         render json: { error: "Failed to advance stage." }, status: :internal_server_error
       end
 
+      # POST /api/v1/pipeline/:project_id/generate
+      #
+      # Calls PipelinePromptService for a single field. Stateless — never writes to DB.
+      # stage param defaults to current_stage; pass explicitly for revision-mode generation.
+      def generate
+        stage   = params[:stage].presence&.to_s || @project.current_stage
+        field   = params[:field].to_s.strip
+        context = params.to_unsafe_h.fetch("context", nil)&.to_h || {}
+
+        return render json: { error: "field is required." }, status: :unprocessable_entity if field.blank?
+
+        result = PipelinePromptService.new(@project).generate(stage, field, context)
+
+        if result
+          render json: { result: result }
+        else
+          render json: { error: "Generation failed. Please try again or type manually." },
+                 status: :unprocessable_entity
+        end
+      rescue => e
+        Rails.logger.error("[Pipeline#generate] #{e.class}: #{e.message}")
+        render json: { error: "Generation failed. Please try again or type manually." },
+               status: :internal_server_error
+      end
+
       # GET /api/v1/pipeline/:project_id/current
       def current
         render json: current_stage_response(@project)

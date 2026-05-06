@@ -15,9 +15,10 @@ Rails.application.routes.draw do
       end
 
       scope "pipeline/:project_id" do
-        post "advance", to: "pipeline#advance"
-        get  "current", to: "pipeline#current"
-        post "revise",  to: "pipeline#revise"
+        post "advance",  to: "pipeline#advance"
+        get  "current",  to: "pipeline#current"
+        post "revise",   to: "pipeline#revise"
+        post "generate", to: "pipeline#generate"
       end
     end
   end
