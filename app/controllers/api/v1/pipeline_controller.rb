@@ -30,7 +30,7 @@ module Api
         end
 
         apply_lock_version
-        data       = unsafe_data
+        data       = stage_permitted_data(stage)
         next_stage = STAGE_ORDER[STAGE_ORDER.index(stage) + 1]
 
         # Outside transaction — mutates in-memory attributes only, never calls save.
@@ -103,7 +103,7 @@ module Api
         end
 
         apply_lock_version
-        data = unsafe_data
+        data = stage_permitted_data(target)
 
         # Outside transaction — same boundary as advance.
         StoryBibleService.new(@project).write_stage_data(target, data)
@@ -140,11 +140,29 @@ module Api
         @project.lock_version = params[:lock_version].to_i if params[:lock_version].present?
       end
 
-      # Stage data is arbitrary JSONB — no SQL injection risk, so we accept all keys.
-      # Explicit permit! signals intent; data goes to story_bible JSONB, not SQL params.
-      def unsafe_data
+      # Explicit permit list for core_story_engine; all other stages use permit! since
+      # their fields land in story_bible JSONB and carry no SQL injection risk.
+      def stage_permitted_data(stage)
         return {} unless params[:data].present?
-        params[:data].permit!.to_h
+
+        if stage.to_s == "core_story_engine"
+          params[:data].permit(
+            :ordinary_world,               :ordinary_world_source,
+            :the_theme,                    :the_theme_source,
+            :the_set_up,                   :the_set_up_source,
+            :the_call,                     :the_call_source,
+            :the_refusal,                  :the_refusal_source,
+            :crossing_the_threshold,       :crossing_the_threshold_source,
+            :the_turning_point,            :the_turning_point_source,
+            :the_ordeal,                   :the_ordeal_source,
+            :the_reward,                   :the_reward_source,
+            :the_new_world,                :the_new_world_source,
+            :strength,                     :strength_source,
+            :obligatory_moment_type
+          ).to_h
+        else
+          params[:data].permit!.to_h
+        end
       end
 
       def pipeline_response(project, check_result)

@@ -1,28 +1,26 @@
 class BeatBoardService
   # The 17 QINIS Native structural beats in canonical order.
   BEAT_TEMPLATES = [
-    { beat_number: 1,  title: "Status Quo",              act: "act_1",    card_type: "foundational" },
-    { beat_number: 2,  title: "Thematic Statement",      act: "act_1",    card_type: "foundational" },
-    { beat_number: 3,  title: "Contextual Exposition",   act: "act_1",    card_type: "foundational" },
-    { beat_number: 4,  title: "Catalyst",                act: "act_1",    card_type: "foundational" },
-    { beat_number: 5,  title: "Deliberation",            act: "act_1",    card_type: "structural"   },
-    { beat_number: 6,  title: "The Reversal",            act: "act_1",    card_type: "foundational" },
-    { beat_number: 7,  title: "Relationship Initiation", act: "act_2a",   card_type: "structural"   },
-    { beat_number: 8,  title: "Rising Action",           act: "act_2a",   card_type: "structural"   },
-    { beat_number: 9,  title: "First Pressure Point",    act: "act_2a",   card_type: "structural"   },
-    { beat_number: 10, title: "Midpoint",                act: "midpoint", card_type: "structural"   },
-    { beat_number: 11, title: "Escalating Stakes",       act: "act_2b",   card_type: "structural"   },
-    { beat_number: 12, title: "Second Pressure Point",   act: "act_2b",   card_type: "structural"   },
-    { beat_number: 13, title: "The Obligatory Moment",   act: "act_2b",   card_type: "foundational" },
-    { beat_number: 14, title: "Internalization",         act: "act_2b",   card_type: "structural"   },
-    { beat_number: 15, title: "The Defining Choice",     act: "act_2b",   card_type: "foundational" },
-    { beat_number: 16, title: "Climactic Action",        act: "act_3",    card_type: "structural"   },
-    { beat_number: 17, title: "The Resolution",          act: "act_3",    card_type: "foundational" }
+    { beat_number: 1,  title: "The Ordinary World",       act: "act_1",  card_type: "foundational" },
+    { beat_number: 2,  title: "The Theme",                act: "act_1",  card_type: "foundational" },
+    { beat_number: 3,  title: "The Set-Up",               act: "act_1",  card_type: "foundational" },
+    { beat_number: 4,  title: "The Call",                 act: "act_1",  card_type: "foundational" },
+    { beat_number: 5,  title: "The Refusal",              act: "act_1",  card_type: "foundational" },
+    { beat_number: 6,  title: "Crossing the Threshold",   act: "act_1",  card_type: "foundational" },
+    { beat_number: 7,  title: "Tests, Allies, Enemies",   act: "act_2a", card_type: "structural"   },
+    { beat_number: 8,  title: "The Approach",             act: "act_2a", card_type: "structural"   },
+    { beat_number: 9,  title: "The Turning Point",        act: "act_2a", card_type: "foundational" },
+    { beat_number: 10, title: "The Ordeal",               act: "act_2b", card_type: "foundational" },
+    { beat_number: 11, title: "The Reckoning",            act: "act_2b", card_type: "structural"   },
+    { beat_number: 12, title: "The Reward",               act: "act_2b", card_type: "foundational" },
+    { beat_number: 13, title: "The Road Back",            act: "act_2b", card_type: "structural"   },
+    { beat_number: 14, title: "The Return",               act: "act_3",  card_type: "structural"   },
+    { beat_number: 15, title: "The New World",            act: "act_3",  card_type: "foundational" }
   ].freeze
 
-  ACT_ZONES               = %w[act_1 act_2a midpoint act_2b act_3].freeze
-  FOUNDATIONAL_BEATS      = [1, 2, 3, 4, 6, 13, 15, 17].freeze
-  STRUCTURAL_BEATS        = [5, 7, 8, 9, 10, 11, 12, 14, 16].freeze
+  ACT_ZONES          = %w[act_1 act_2a act_2b act_3].freeze
+  FOUNDATIONAL_BEATS = [1, 2, 3, 4, 5, 6, 9, 10, 12, 15].freeze
+  STRUCTURAL_BEATS   = [7, 8, 11, 13, 14].freeze
 
   # Builds the full beat board from the current Bible state.
   # Foundational cards are pre-populated; structural cards start unplaced (sidebar).
@@ -136,30 +134,19 @@ class BeatBoardService
   end
 
   private_class_method def self.foundational_body(beat_number, bible)
+    cse = bible.dig("core_story_engine") || {}
     case beat_number
-    when 1
-      bible.dig("premise", "dramatic_situation").to_s
-    when 2
-      bible.dig("premise", "central_question").to_s
-    when 3
-      name       = bible.dig("protagonist", "name").to_s.presence
-      impediment = bible.dig("protagonist", "psychological_impediment").to_s.presence
-      core_need  = bible.dig("protagonist", "core_need").to_s.presence
-      [name, impediment, core_need].compact.join("\n\n")
-    when 4
-      bible.dig("core_story_engine", "catalyst").to_s
-    when 6
-      reversal = bible.dig("core_story_engine", "the_reversal").to_s.presence
-      conflict = bible.dig("core_story_engine", "the_conflict").to_s.presence
-      [reversal, conflict].compact.join("\n\n")
-    when 13
-      bible.dig("core_story_engine", "obligatory_moment").to_s
-    when 15
-      bible.dig("core_story_engine", "defining_choice").to_s
-    when 17
-      bible.dig("core_story_engine", "the_resolution").to_s
-    else
-      ""
+    when 1  then cse["ordinary_world"].to_s
+    when 2  then cse["the_theme"].to_s
+    when 3  then cse["the_set_up"].to_s
+    when 4  then cse["the_call"].to_s
+    when 5  then cse["the_refusal"].to_s
+    when 6  then cse["crossing_the_threshold"].to_s
+    when 9  then cse["the_turning_point"].to_s
+    when 10 then cse["the_ordeal"].to_s
+    when 12 then cse["the_reward"].to_s
+    when 15 then cse["the_new_world"].to_s
+    else ""
     end
   end
 

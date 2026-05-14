@@ -123,16 +123,101 @@ class PipelinePromptService
     BLOCK
   end
 
-  # ── Prompt construction (stubs — stage-specific content added later) ──────
+  # ── Prompt construction ───────────────────────────────────────────────────
 
-  def build_system_prompt(_stage, _field, constraint_block, _input_context)
-    "#{constraint_block}\n\n" \
-    "You are a story structure assistant for QINIS Script. " \
-    "Respond with the requested content only — no preamble, no explanation, no alternatives unless asked."
+  def build_system_prompt(stage, field, constraint_block, _input_context)
+    base = "#{constraint_block}\n\n" \
+           "You are a story structure assistant for QINIS Script. " \
+           "Respond with the requested content only — no preamble, no explanation, no alternatives unless asked."
+
+    hard = stage == "core_story_engine" ? stage3_hard_constraint(field) : nil
+    hard.present? ? "#{base}\n\n#{hard}" : base
   end
 
-  def build_user_message(stage, field, _input_context)
+  def build_user_message(stage, field, input_context)
+    return stage3_user_message(field, input_context) if stage.to_s == "core_story_engine"
+
     "Generate content for stage=#{stage} field=#{field}."
+  end
+
+  # ── Stage 3 — Core Story Engine ───────────────────────────────────────────
+
+  # Hard constraints appended to the system prompt for fields that need tight
+  # output control. Nil return means no constraint for that field.
+  def stage3_hard_constraint(field)
+    case field.to_s
+    when "strength"
+      "Respond with a single phrase of no more than 15 words. Do not elaborate."
+    when "the_ordeal"
+      "This is the 75% mark. Describe what HAPPENS, not what the protagonist CHOOSES. The choice comes in The Reward."
+    when "the_reward"
+      "This is the Defining Choice. The protagonist makes a decision. Do not describe the outcome — that belongs in The New World."
+    when "the_new_world"
+      "This is the final state. Show the protagonist after everything has resolved."
+    end
+  end
+
+  def stage3_user_message(field, ctx)
+    story_type = ctx[:story_type].to_s
+
+    case field.to_s
+    when "ordinary_world"
+      "Describe the protagonist's ordinary world before the story begins. Show who they are, " \
+      "what their life looks like, and what is missing or broken beneath the surface."
+
+    when "the_theme"
+      "State the thematic question this story is asking. This is the central human question " \
+      "the protagonist's journey will answer — not the plot question."
+
+    when "the_set_up"
+      "Describe the setup. Establish the protagonist's situation and the conditions that make " \
+      "them susceptible to The Call. Show what HAPPENS before anything changes."
+
+    when "the_call"
+      "Describe the call to adventure. What external event arrives that asks the protagonist " \
+      "to step outside their ordinary world? This must happen TO the protagonist."
+
+    when "the_refusal"
+      "Describe the protagonist's initial resistance to The Call. Connect the refusal directly " \
+      "to their Psychological Impediment."
+
+    when "crossing_the_threshold"
+      "Describe the moment the protagonist commits to the journey. What is the single point of " \
+      "no return that locks them into the story? Show the event — do not describe its aftermath."
+
+    when "strength"
+      "Propose the exact opposite of the protagonist's Psychological Impediment as a single phrase. " \
+      "This is what the protagonist will move toward (Comedy) or fail to reach (Tragedy)."
+
+    when "the_turning_point"
+      "Describe the turning point at the midpoint of the second act. Something fundamental shifts — " \
+      "the protagonist's approach, their understanding, or the stakes. This is a pivot, not a setback."
+
+    when "the_ordeal"
+      if story_type == "tragedy"
+        "Describe the protagonist's highest point — the apparent triumph at 75% of the story. " \
+        "They appear to have succeeded, but this is the ultimate manifestation of their flaw."
+      else
+        "Describe the protagonist's lowest point at 75% of the story. Everything they wanted is " \
+        "lost or inverted. This is the darkest moment before the final act."
+      end
+
+    when "the_reward"
+      if story_type == "tragedy"
+        "Describe the decision the protagonist makes when they are at their apparent peak. " \
+        "They double down on their flaw. Do not describe what happens next."
+      else
+        "Describe the decision the protagonist makes when they are at their lowest. " \
+        "What choice shows them moving toward their Strength? Do not describe the outcome."
+      end
+
+    when "the_new_world"
+      "Describe the new status quo after the Defining Choice plays out. Show the protagonist " \
+      "in their final state — what has changed, what has been lost, what has been gained."
+
+    else
+      "Generate content for stage=core_story_engine field=#{field}."
+    end
   end
 
   # ── API call ─────────────────────────────────────────────────────────────
