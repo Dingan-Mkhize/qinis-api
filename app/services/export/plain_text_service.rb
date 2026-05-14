@@ -3,11 +3,10 @@ module Export
     SEPARATOR = ("═" * 35).freeze
 
     ACT_LABELS = {
-      "act_1"    => "ACT 1",
-      "act_2a"   => "ACT 2A",
-      "midpoint" => "MIDPOINT",
-      "act_2b"   => "ACT 2B",
-      "act_3"    => "ACT 3"
+      "act_1"  => "ACT 1",
+      "act_2a" => "ACT 2A",
+      "act_2b" => "ACT 2B",
+      "act_3"  => "ACT 3"
     }.freeze
 
     def initialize(project)
@@ -51,7 +50,7 @@ module Export
 
     def placed_cards_for_zone(zone)
       Array(@project.beat_board&.dig("cards"))
-        .select { |c| c["act"] == zone && c["placed"] }
+        .select { |c| (c["column"].presence || c["act"]) == zone }
         .sort_by { |c| c["position"].to_i }
     end
   end

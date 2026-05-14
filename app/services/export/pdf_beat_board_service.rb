@@ -1,17 +1,15 @@
 module Export
   class PdfBeatBoardService
     ACT_LABELS = {
-      "act_1"    => "ACT 1",
-      "act_2a"   => "ACT 2A",
-      "midpoint" => "MIDPOINT",
-      "act_2b"   => "ACT 2B",
-      "act_3"    => "ACT 3"
+      "act_1"  => "ACT 1",
+      "act_2a" => "ACT 2A",
+      "act_2b" => "ACT 2B",
+      "act_3"  => "ACT 3"
     }.freeze
 
     ACT_COLORS = {
       "act_1"        => { header: "2C5F8A", light: "D6E8F5" },
       "act_2a"       => { header: "2E7D4B", light: "D4EDE0" },
-      "midpoint"     => { header: "1B7B8A", light: "CCE8EC" },
       "act_2b"       => { header: "5C2D91", light: "E5D8F5" },
       "act_3"        => { header: "C0392B", light: "F9D8D6" },
       "foundational" => { header: "B8860B", light: "FFF3CC" }
@@ -117,7 +115,7 @@ module Export
 
     def placed_cards_for_zone(zone)
       Array(@project.beat_board&.dig("cards"))
-        .select { |c| c["act"] == zone && c["placed"] }
+        .select { |c| (c["column"].presence || c["act"]) == zone }
         .sort_by { |c| c["position"].to_i }
     end
   end
