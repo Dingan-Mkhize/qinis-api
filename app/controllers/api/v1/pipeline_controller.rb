@@ -146,7 +146,9 @@ module Api
         return {} unless params[:data].present?
 
         if stage.to_s == "core_story_engine"
-          params[:data].permit(
+          return {} unless params[:data][:core_story_engine].present?
+
+          params[:data][:core_story_engine].permit(
             :ordinary_world,               :ordinary_world_source,
             :the_theme,                    :the_theme_source,
             :the_set_up,                   :the_set_up_source,

@@ -148,12 +148,16 @@ class PipelinePromptService
     case field.to_s
     when "strength"
       "Respond with a single phrase of no more than 15 words. Do not elaborate."
+    when "the_set_up"
+      "Maximum 200 words."
+    when "crossing_the_threshold"
+      "Maximum 200 words."
     when "the_ordeal"
-      "This is the 75% mark. Describe what HAPPENS, not what the protagonist CHOOSES. The choice comes in The Reward."
+      "This is the 75% mark. Describe what HAPPENS, not what the protagonist CHOOSES. The choice comes in The Reward. Maximum 200 words."
     when "the_reward"
-      "This is the Defining Choice. The protagonist makes a decision. Do not describe the outcome — that belongs in The New World."
+      "This is the Defining Choice. The protagonist makes a decision. Do not describe the outcome — that belongs in The New World. Maximum 200 words."
     when "the_new_world"
-      "This is the final state. Show the protagonist after everything has resolved."
+      "This is the final state. Show the protagonist after everything has resolved. Maximum 200 words."
     end
   end
 

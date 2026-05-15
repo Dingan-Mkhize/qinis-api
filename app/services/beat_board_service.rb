@@ -1,15 +1,15 @@
 class BeatBoardService
-  # The 17 QINIS Native structural beats in canonical order.
+  # The 15 QINIS Native structural beats in canonical order.
   BEAT_TEMPLATES = [
-    { beat_number: 1,  title: "The Ordinary World",       act: "act_1",  card_type: "foundational" },
-    { beat_number: 2,  title: "The Theme",                act: "act_1",  card_type: "foundational" },
+    { beat_number: 1,  title: "The Ordinary World",       act: "act_1",  card_type: "structural"   },
+    { beat_number: 2,  title: "The Theme",                act: "act_1",  card_type: "structural"   },
     { beat_number: 3,  title: "The Set-Up",               act: "act_1",  card_type: "foundational" },
-    { beat_number: 4,  title: "The Call",                 act: "act_1",  card_type: "foundational" },
-    { beat_number: 5,  title: "The Refusal",              act: "act_1",  card_type: "foundational" },
+    { beat_number: 4,  title: "The Call",                 act: "act_1",  card_type: "structural"   },
+    { beat_number: 5,  title: "The Refusal",              act: "act_1",  card_type: "structural"   },
     { beat_number: 6,  title: "Crossing the Threshold",   act: "act_1",  card_type: "foundational" },
     { beat_number: 7,  title: "Tests, Allies, Enemies",   act: "act_2a", card_type: "structural"   },
     { beat_number: 8,  title: "The Approach",             act: "act_2a", card_type: "structural"   },
-    { beat_number: 9,  title: "The Turning Point",        act: "act_2a", card_type: "foundational" },
+    { beat_number: 9,  title: "The Turning Point",        act: "act_2a", card_type: "structural"   },
     { beat_number: 10, title: "The Ordeal",               act: "act_2b", card_type: "foundational" },
     { beat_number: 11, title: "The Reckoning",            act: "act_2b", card_type: "structural"   },
     { beat_number: 12, title: "The Reward",               act: "act_2b", card_type: "foundational" },
@@ -19,8 +19,8 @@ class BeatBoardService
   ].freeze
 
   ACT_ZONES          = %w[act_1 act_2a act_2b act_3].freeze
-  FOUNDATIONAL_BEATS = [1, 2, 3, 4, 5, 6, 9, 10, 12, 15].freeze
-  STRUCTURAL_BEATS   = [7, 8, 11, 13, 14].freeze
+  FOUNDATIONAL_BEATS = [3, 6, 10, 12, 15].freeze
+  STRUCTURAL_BEATS   = [1, 2, 4, 5, 7, 8, 9, 11, 13, 14].freeze
 
   # Builds the full beat board from the current Bible state.
   # Foundational cards are pre-populated; structural cards start unplaced (sidebar).
@@ -119,33 +119,47 @@ class BeatBoardService
   private
 
   private_class_method def self.build_initial_card(tmpl, bible, index)
-    foundational = tmpl[:card_type] == "foundational"
+    foundational     = tmpl[:card_type] == "foundational"
+    premise_prefill  = !foundational && [1, 2].include?(tmpl[:beat_number])
+
+    body = if foundational
+             foundational_body(tmpl[:beat_number], bible)
+           elsif premise_prefill
+             structural_prefill(tmpl[:beat_number], bible)
+           else
+             ""
+           end
+
     {
       "id"          => SecureRandom.uuid,
       "beat_number" => tmpl[:beat_number],
       "title"       => tmpl[:title],
-      "body"        => foundational ? foundational_body(tmpl[:beat_number], bible) : "",
-      "body_source" => foundational ? "bible" : "manual",
+      "body"        => body,
+      "body_source" => (foundational || premise_prefill) ? "bible" : "manual",
       "act"         => tmpl[:act],
       "card_type"   => tmpl[:card_type],
       "position"    => index,
-      "placed"      => foundational
+      "placed"      => foundational || premise_prefill
     }
   end
 
   private_class_method def self.foundational_body(beat_number, bible)
     cse = bible.dig("core_story_engine") || {}
     case beat_number
-    when 1  then cse["ordinary_world"].to_s
-    when 2  then cse["the_theme"].to_s
     when 3  then cse["the_set_up"].to_s
-    when 4  then cse["the_call"].to_s
-    when 5  then cse["the_refusal"].to_s
     when 6  then cse["crossing_the_threshold"].to_s
-    when 9  then cse["the_turning_point"].to_s
     when 10 then cse["the_ordeal"].to_s
     when 12 then cse["the_reward"].to_s
     when 15 then cse["the_new_world"].to_s
+    else ""
+    end
+  end
+
+  private_class_method def self.structural_prefill(beat_number, bible)
+    premise = bible.dig("premise") || {}
+    case beat_number
+    when 1 then premise["dramatic_situation"].to_s
+    when 2 then premise["central_question"].to_s
     else ""
     end
   end

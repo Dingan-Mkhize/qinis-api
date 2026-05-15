@@ -8,10 +8,14 @@ class StoryBibleService
   end
 
   # Merges confirmed stage data (with source metadata) into the current Bible.
-  # data must mirror the Bible's key structure — nested hashes are deep-merged,
-  # arrays and scalar values are replaced outright.
-  def write_stage_data(_stage, data)
-    @project.story_bible = deep_merge(read_bible, stringify_deep(data))
+  # Stages whose fields live inside a named Bible sub-key (e.g. core_story_engine)
+  # send flat params from the controller; wrap them here before deep-merging so they
+  # land at the correct path rather than polluting the top level.
+  NESTED_STAGES = %w[premise protagonist core_story_engine antagonist characters].freeze
+
+  def write_stage_data(stage, data)
+    overlay = NESTED_STAGES.include?(stage.to_s) ? { stage.to_s => data } : data
+    @project.story_bible = deep_merge(read_bible, stringify_deep(overlay))
   end
 
   def read_bible
@@ -58,23 +62,29 @@ class StoryBibleService
         "enneagram_label"                 => ""
       },
       "core_story_engine" => {
-        "immediate_want"           => "",
-        "immediate_want_source"    => "manual",
-        "catalyst"                 => "",
-        "catalyst_source"          => "manual",
-        "strength"                 => "",
-        "strength_source"          => "manual",
-        "the_reversal"             => "",
-        "the_reversal_source"      => "manual",
-        "the_conflict"             => "",
-        "the_conflict_source"      => "manual",
-        "obligatory_moment"        => "",
-        "obligatory_moment_source" => "manual",
-        "obligatory_moment_type"   => nil,
-        "defining_choice"          => "",
-        "defining_choice_source"   => "manual",
-        "the_resolution"           => "",
-        "the_resolution_source"    => "manual"
+        "ordinary_world"                  => "",
+        "ordinary_world_source"           => "manual",
+        "the_theme"                       => "",
+        "the_theme_source"                => "manual",
+        "the_set_up"                      => "",
+        "the_set_up_source"               => "manual",
+        "the_call"                        => "",
+        "the_call_source"                 => "manual",
+        "the_refusal"                     => "",
+        "the_refusal_source"              => "manual",
+        "crossing_the_threshold"          => "",
+        "crossing_the_threshold_source"   => "manual",
+        "strength"                        => "",
+        "strength_source"                 => "manual",
+        "the_turning_point"               => "",
+        "the_turning_point_source"        => "manual",
+        "the_ordeal"                      => "",
+        "the_ordeal_source"               => "manual",
+        "obligatory_moment_type"          => nil,
+        "the_reward"                      => "",
+        "the_reward_source"               => "manual",
+        "the_new_world"                   => "",
+        "the_new_world_source"            => "manual"
       },
       "story_type"         => nil,
       "logline"            => "",
